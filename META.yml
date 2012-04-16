@@ -1,0 +1,47 @@
+---
+abstract: 'Configuration data with context'
+author:
+  - 'Ivan Wills <ivan.wills@gmail.com>'
+build_requires:
+  AnyEvent: 0
+  AnyEvent::HTTP: 0
+  Test::More: 0
+  Test::NoWarnings: 0
+configure_requires:
+  Module::Build: 0.38
+dynamic_config: 1
+generated_by: 'Module::Build version 0.38, CPAN::Meta::Converter version 2.112150'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Data-Context
+provides:
+  Data::Context:
+    file: lib/Data/Context.pm
+    version: v0.0.1
+  Data::Context::Actions:
+    file: lib/Data/Context/Actions.pm
+    version: v0.0.1
+  Data::Context::Instance:
+    file: lib/Data/Context/Instance.pm
+    version: v0.0.1
+  Data::Context::Log:
+    file: lib/Data/Context.pm
+    version: 0
+  Data::Context::Util:
+    file: lib/Data/Context/Util.pm
+    version: v0.0.1
+requires:
+  Class::Inspector: 0
+  Clone: 0
+  Hash::Merge: 0
+  Moose: 0
+  Moose::Util::TypeConstraints: 0
+  Path::Class: 0
+  perl: 5.008
+resources:
+  bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Data::Context
+  license: http://dev.perl.org/licenses/
+  repository: git://github.com/ivanwills/Data-Context.git
+version: v0.0.1
