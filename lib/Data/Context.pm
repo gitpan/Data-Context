@@ -7,7 +7,6 @@ package Data::Context;
 # $Revision$, $Source$, $Date$
 
 use Moose;
-use 5.010;
 use version;
 use Carp;
 use Scalar::Util;
@@ -19,7 +18,7 @@ use Path::Class;
 
 use Data::Context::Instance;
 
-our $VERSION     = version->new('0.0.1');
+our $VERSION     = version->new('0.0.2');
 our @EXPORT_OK   = qw//;
 our %EXPORT_TAGS = ();
 
@@ -202,7 +201,8 @@ sub fatal { my $self = shift; $self->_log( 'FATAL', @_ ) if $self->level <= 5 }
 
 sub _log {
     my ($self, $level, @message) = @_;
-    print {*STDERR} localtime . " [$level] ", @message, "\n";
+    chomp $message[-1];
+    CORE::warn localtime . " [$level] ", @message, "\n";
 }
 1;
 
@@ -214,7 +214,7 @@ Data::Context - Configuration data with context
 
 =head1 VERSION
 
-This documentation refers to Data::Context version 0.1.
+This documentation refers to Data::Context version 0.0.2.
 
 =head1 SYNOPSIS
 

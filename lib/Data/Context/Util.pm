@@ -17,7 +17,7 @@ use Data::Dumper qw/Dumper/;
 use English qw/ -no_match_vars /;
 use base qw/Exporter/;
 
-our $VERSION     = version->new('0.0.1');
+our $VERSION     = version->new('0.0.2');
 our @EXPORT_OK   = qw/lol_path lol_iterate/;
 our %EXPORT_TAGS = ();
 #our @EXPORT      = qw//;
@@ -52,7 +52,7 @@ sub lol_path {
             $replacer = sub {  $current->[$item] = shift };
             $point = $point->[$item];
         }
-        elsif ( blessed $point && $point->can( $path[0] ) ) {
+        elsif ( blessed $point && $point->can( $item ) ) {
             $replacer = undef;
             $point = $point->$item();
         }
@@ -89,6 +89,12 @@ sub lol_iterate {
                 lol_iterate( $point->[$i], $code, "$path$i" ) if ref $point->[$i];
             }
         }
+        elsif ( blessed $point && eval { %{$point} } ) {
+            for my $key ( keys %$point ) {
+                $code->( $point->{$key}, "$path$key" );
+                lol_iterate( $point->{$key}, $code, "$path$key" ) if ref $point->{$key};
+            }
+        }
     }
 
     return;
@@ -104,7 +110,7 @@ Data::Context::Util - Helper functions for Data::Context
 
 =head1 VERSION
 
-This documentation refers to Data::Context::Util version 0.1.
+This documentation refers to Data::Context::Util version 0.0.2.
 
 =head1 SYNOPSIS
 
