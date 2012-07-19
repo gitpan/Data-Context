@@ -7,6 +7,7 @@ package Data::Context::Instance;
 # $Revision$, $Source$, $Date$
 
 use Moose;
+use warnings;
 use version;
 use Carp;
 use Scalar::Util;
@@ -18,7 +19,7 @@ use Clone qw/clone/;
 use Data::Context::Util qw/lol_path lol_iterate/;
 use Class::Inspector;
 
-our $VERSION     = version->new('0.0.2');
+our $VERSION     = version->new('0.0.3');
 our @EXPORT_OK   = qw//;
 our %EXPORT_TAGS = ();
 
@@ -213,7 +214,7 @@ Data::Context::Instance - The in memory instance of a data context config file
 
 =head1 VERSION
 
-This documentation refers to Data::Context::Instance version 0.0.2.
+This documentation refers to Data::Context::Instance version 0.0.3.
 
 =head1 SYNOPSIS
 

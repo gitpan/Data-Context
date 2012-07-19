@@ -19,19 +19,19 @@ name: Data-Context
 provides:
   Data::Context:
     file: lib/Data/Context.pm
-    version: v0.0.2
+    version: v0.0.3
   Data::Context::Actions:
     file: lib/Data/Context/Actions.pm
-    version: v0.0.2
+    version: v0.0.3
   Data::Context::Instance:
     file: lib/Data/Context/Instance.pm
-    version: v0.0.2
+    version: v0.0.3
   Data::Context::Log:
     file: lib/Data/Context.pm
     version: 0
   Data::Context::Util:
     file: lib/Data/Context/Util.pm
-    version: v0.0.2
+    version: v0.0.3
 recommends:
   JSON: 0
   XML::Simple: 0
@@ -48,4 +48,4 @@ resources:
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Data::Context
   license: http://dev.perl.org/licenses/
   repository: git://github.com/ivanwills/Data-Context.git
-version: v0.0.2
+version: v0.0.3
