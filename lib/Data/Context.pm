@@ -19,7 +19,7 @@ use Path::Class;
 
 use Data::Context::Instance;
 
-our $VERSION     = version->new('0.0.3');
+our $VERSION     = version->new('0.0.4');
 our @EXPORT_OK   = qw//;
 our %EXPORT_TAGS = ();
 
@@ -203,7 +203,7 @@ sub fatal { my $self = shift; $self->_log( 'FATAL', @_ ) if $self->level <= 5 }
 sub _log {
     my ($self, $level, @message) = @_;
     chomp $message[-1];
-    CORE::warn localtime . " [$level] ", @message, "\n";
+    CORE::warn( localtime() . " [$level] ", @message, "\n" );
 }
 1;
 
@@ -215,7 +215,7 @@ Data::Context - Configuration data with context
 
 =head1 VERSION
 
-This documentation refers to Data::Context version 0.0.3.
+This documentation refers to Data::Context version 0.0.4.
 
 =head1 SYNOPSIS
 
