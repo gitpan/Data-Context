@@ -17,6 +17,9 @@ my $builder = Module::Build->new(
         'Path::Class'                  => 0,
         'version'                      => 0,
     },
+    configure_requires => {
+        'Module::Build' => 0.38,
+    },
     build_requires => {
         'Test::More'       => 0,
         'Test::Warn'       => 0,
@@ -25,9 +28,9 @@ my $builder = Module::Build->new(
         'AnyEvent::HTTP'   => 0,
     },
     recommends => {
-        'JSON'        => 0,
-        'YAML::XS'    => 0,
-        'XML::Simple' => 0,
+        'JSON'               => 0,
+        'YAML::XS'           => 0,
+        'XML::Simple'        => 0,
         'Test::Spelling'     => 0,
         'Test::Perl::Critic' => 0,
         'Test::Kwalitee'     => 0,

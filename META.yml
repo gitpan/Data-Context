@@ -9,7 +9,7 @@ build_requires:
   Test::NoWarnings: 0
   Test::Warn: 0
 configure_requires:
-  Module::Build: 0.40
+  Module::Build: 0.38
 dynamic_config: 1
 generated_by: 'Module::Build version 0.4001, CPAN::Meta::Converter version 2.112621'
 license: perl
@@ -20,19 +20,19 @@ name: Data-Context
 provides:
   Data::Context:
     file: lib/Data/Context.pm
-    version: v0.0.4
+    version: v0.0.5
   Data::Context::Actions:
     file: lib/Data/Context/Actions.pm
-    version: v0.0.4
+    version: v0.0.5
   Data::Context::Instance:
     file: lib/Data/Context/Instance.pm
-    version: v0.0.4
+    version: v0.0.5
   Data::Context::Log:
     file: lib/Data/Context.pm
     version: 0
   Data::Context::Util:
     file: lib/Data/Context/Util.pm
-    version: v0.0.4
+    version: v0.0.5
 recommends:
   JSON: 0
   Pod::Coverage: 0
@@ -54,4 +54,4 @@ resources:
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Data::Context
   license: http://dev.perl.org/licenses/
   repository: git://github.com/ivanwills/Data-Context.git
-version: v0.0.4
+version: v0.0.5
