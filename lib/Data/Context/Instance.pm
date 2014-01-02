@@ -7,35 +7,31 @@ package Data::Context::Instance;
 # $Revision$, $Source$, $Date$
 
 use Moose;
+use namespace::autoclean;
 use warnings;
 use version;
 use Carp;
 use Scalar::Util;
 use List::Util;
+use List::MoreUtils qw/pairwise/;
 use Data::Dumper qw/Dumper/;
 use English qw/ -no_match_vars /;
 use Hash::Merge;
 use Clone qw/clone/;
-use Data::Context::Util qw/lol_path lol_iterate/;
+use Data::Context::Util qw/lol_path lol_iterate do_require/;
 use Class::Inspector;
+use Moose::Util::TypeConstraints qw/duck_type/;
 
-our $VERSION     = version->new('0.0.5');
-our @EXPORT_OK   = qw//;
-our %EXPORT_TAGS = ();
+our $VERSION = version->new('0.1.0');
 
 has path => (
     is       => 'rw',
     isa      => 'Str',
     required => 1,
 );
-has file => (
+has loader => (
     is       => 'rw',
-    isa      => 'Path::Class::File',
-    required => 1,
-);
-has type => (
-    is       => 'ro',
-    isa      => 'Str',
+    isa      => 'Data::Context::Loader',
     required => 1,
 );
 has dc => (
@@ -43,11 +39,6 @@ has dc => (
     isa      => 'Data::Context',
     required => 1,
     weak_ref => 1,
-);
-has stats => (
-    is         => 'rw',
-    lazy_build => 1,
-    builder    => '_stats',
 );
 has raw => (
     is  => 'rw',
@@ -58,52 +49,25 @@ has actions => (
     isa     => 'HashRef[HashRef]',
     default => sub {{}},
 );
-
-sub _stats {
-    my ($self) = @_;
-    my $stat = $self->file->stat;
-    if ( !-f $self->file ) {
-        my $msg = 'Cannot find the file "' . $self->file . '"';
-        $self->log->error($msg);
-        confess $msg;
-    }
-
-    return {
-        size     => $stat->size,
-        modified => $stat->mtime,
-    };
-}
+has merger => (
+    is      => 'rw',
+    isa     => duck_type( [qw/merge/] ),
+    builder => '_merger',
+    handles => [qw/merge/],
+);
 
 sub init {
     my ($self) = @_;
-    my $raw;
 
-    # check if we already have the raw data and if so that it is current
-    return $self if $self->raw && -s $self->file == $self->stats->{size};
+    return $self if !$self->changed;
 
-    # get the raw data
-    if ( $self->type eq 'json' ) {
-        _do_require('JSON');
-        $raw = JSON->new->utf8->shrink->decode( scalar $self->file->slurp );
-    }
-    elsif ( $self->type eq 'js' ) {
-        _do_require('JSON');
-        $raw = JSON->new->utf8->relaxed->shrink->decode( scalar $self->file->slurp );
-    }
-    elsif ( $self->type eq 'yaml' ) {
-        _do_require('YAML::XS');
-        $raw = YAML::XS::Load( scalar $self->file->slurp );
-    }
-    elsif ( $self->type eq 'xml' ) {
-        _do_require('XML::Simple');
-        $raw = XML::Simple::XMLin( scalar $self->file->slurp );
-    }
+    my $raw = $self->loader->load();
 
     # merge in any inherited data
     if ( $raw->{PARENT} ) {
         $self->raw({});
         my $parent = $self->dc->get_instance( $raw->{PARENT} )->init;
-        $raw = Hash::Merge->new('LEFT_PRECEDENT')->merge( $raw, $parent->raw );
+        $raw = $self->merge( $raw, $parent->raw );
     }
 
     # save complete raw data
@@ -114,6 +78,26 @@ sub init {
     lol_iterate( $raw, sub { $self->process_data(\$count, @_) } );
 
     return $self;
+}
+
+sub changed {
+    my ($self) = @_;
+
+    # considered changed if not data has been read
+    return 1 if !$self->raw;
+
+    # considered changed if this file has changed
+    return 1 if $self->loader->changed;
+
+    if ( $self->raw->{PARENT} ) {
+        my $parent = $self->dc->get_instance( $self->raw->{PARENT} );
+
+        # considered changed if the parent instance has changed
+        return $parent->changed;
+    }
+
+    # when all else fails the data is considered unchanged
+    return 0;
 }
 
 sub get_data {
@@ -149,9 +133,9 @@ sub process_data {
     my ( $self, $count, $data, $path ) = @_;
 
     if ( !ref $data ) {
-        if ( $data =~ /^\# (.*) \#$/xms ) {
+        if ( defined $data && $data =~ /^\# (.*) \#$/xms ) {
             my $data_path = $1;
-            _do_require( $self->dc->action_class );
+            do_require( $self->dc->action_class );
             $self->actions->{$path} = {
                 module => $self->dc->action_class,
                 method => 'expand_vars',
@@ -167,7 +151,7 @@ sub process_data {
             order  => $data->{ORDER},
             found  => $$count++,
         };
-        _do_require( $self->actions->{$path}{module} );
+        do_require( $self->actions->{$path}{module} );
     }
 
     return;
@@ -188,22 +172,11 @@ sub _sort_optional {
     return @sorted;
 }
 
-our %required;
-sub _do_require {
-    my ($module) = @_;
-
-    return if $required{$module}++;
-
-    # check if namespace appears to be loaded
-    return if Class::Inspector->loaded($module);
-
-    # Try loading namespace
-    $module =~ s{::}{/}g;
-    $module .= '.pm';
-    eval { require $module };
-
-    confess $@ if $@;
+sub _merger {
+    return Hash::Merge->new('LEFT_PRECEDENT');
 }
+
+__PACKAGE__->meta->make_immutable;
 
 1;
 
@@ -215,7 +188,7 @@ Data::Context::Instance - The in memory instance of a data context config file
 
 =head1 VERSION
 
-This documentation refers to Data::Context::Instance version 0.0.5.
+This documentation refers to Data::Context::Instance version 0.1.0.
 
 =head1 SYNOPSIS
 
@@ -242,6 +215,12 @@ This documentation refers to Data::Context::Instance version 0.0.5.
 =head2 C<init()>
 
 Initialises the instance ie it reads the config file and merges in the parent if found
+
+=head2 C<changed ()>
+
+Returns true if any of the files that go into this instance have changed (or
+if they haven't yet been processed) and returns false if this instance is still
+valid.
 
 =head2 C<get_data ( $vars )>
 

@@ -17,7 +17,6 @@ my $path = file($0)->parent->subdir('dc');
 test_creation();
 test_getting();
 test_getting_no_fallback();
-test_loging();
 
 done_testing;
 
@@ -47,6 +46,16 @@ sub test_getting {
     $data = eval { $dc->get( 'data/with/deep/path', { test => { value => [qw/a b/] } } ) };
     #diag Dumper $data;
     ok $data, "get some data";
+
+    # test getting root index
+    $data = eval { $dc->get( '/', { test => { value => [qw/a b/] } } ) };
+    #diag Dumper $data;
+    ok $data, "get some data";
+
+    # test getting other deep dir
+    $data = eval { $dc->get( '/non-existant/', { test => { value => [qw/a b/] } } ) };
+    #diag Dumper $data;
+    ok $data, "get some data";
 }
 
 sub test_getting_no_fallback {
@@ -68,21 +77,6 @@ sub test_getting_no_fallback {
         ok $data, "get default data"
             or diag "Error $e";
     }
-}
-sub test_loging {
-    my $dc = Data::Context->new(
-        path  => "$path",
-        debug => 1,
-    );
-
-    warnings_like {$dc->log->debug('debug')} qr/DEBUG/, 'Can log debug';
-    warnings_like {$dc->log->info ('info ')} qr/INFO/ , 'Can log info ';
-    warnings_like {$dc->log->warn ('warn ')} qr/WARN/ , 'Can log warn ';
-    warnings_like {$dc->log->error('error')} qr/ERROR/, 'Can log error';
-    warnings_like {$dc->log->fatal('fatal')} qr/FATAL/, 'Can log fatal';
-
-    $dc->debug(3);
-    warning_is {$dc->log->debug('debug off')} undef, 'Can log debug';
 }
 
 sub get_data {

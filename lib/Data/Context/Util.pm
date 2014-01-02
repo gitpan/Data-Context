@@ -12,19 +12,16 @@ use version;
 use Carp;
 use Scalar::Util qw/blessed/;
 use List::Util;
-#use List::MoreUtils;
 use Data::Dumper qw/Dumper/;
 use English qw/ -no_match_vars /;
 use base qw/Exporter/;
 
-our $VERSION     = version->new('0.0.5');
-our @EXPORT_OK   = qw/lol_path lol_iterate/;
-our %EXPORT_TAGS = ();
-#our @EXPORT      = qw//;
+our $VERSION   = version->new('0.1.0');
+our @EXPORT_OK = qw/lol_path lol_iterate do_require/;
 
 sub lol_path {
     my ($lol, $path) = @_;
-    my @path = split /[.]/, $path;
+    my @path = split /[.]/xms, $path;
     my $point = $lol;
     my $replacer;
 
@@ -71,6 +68,10 @@ sub lol_iterate {
     my ($lol, $code, $path) = @_;
     my $point = $lol;
 
+    if ( !$path && defined $point ) {
+        $code->( $point, $path );
+    }
+
     $path = $path ? "$path." : '';
 
     if ( $point ) {
@@ -100,6 +101,28 @@ sub lol_iterate {
     return;
 }
 
+our %required;
+sub do_require {
+    my ($module) = @_;
+
+    return if $required{$module}++;
+
+    # check if namespace appears to be loaded
+    return if Class::Inspector->loaded($module);
+
+    # Try loading namespace
+    $module =~ s{::}{/}gxms;
+    $module .= '.pm';
+    eval {
+        require $module
+    };
+    if (my $e = $@) {
+        confess $e;
+    }
+
+    return;
+}
+
 1;
 
 __END__
@@ -110,7 +133,7 @@ Data::Context::Util - Helper functions for Data::Context
 
 =head1 VERSION
 
-This documentation refers to Data::Context::Util version 0.0.5.
+This documentation refers to Data::Context::Util version 0.1.0.
 
 =head1 SYNOPSIS
 
@@ -181,6 +204,10 @@ It is called as:
 
 Recursively iterates through a data structure calling C<$code> for each value
 encountered.
+
+=head2 C<do_require ($module)>
+
+Requires the specified module (if not previously required
 
 =head1 DIAGNOSTICS
 

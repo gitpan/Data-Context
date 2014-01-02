@@ -7,6 +7,7 @@ package Data::Context;
 # $Revision$, $Source$, $Date$
 
 use Moose;
+use namespace::autoclean;
 use warnings;
 use version;
 use Carp;
@@ -14,28 +15,13 @@ use Scalar::Util;
 use List::Util;
 use Data::Dumper qw/Dumper/;
 use English qw/ -no_match_vars /;
-use Moose::Util::TypeConstraints;
 use Path::Class;
 
 use Data::Context::Instance;
+use Data::Context::Finder::File;
 
-our $VERSION     = version->new('0.0.5');
-our @EXPORT_OK   = qw//;
-our %EXPORT_TAGS = ();
+our $VERSION = version->new('0.1.0');
 
-subtype 'ArrayRefStr'
-    => as 'ArrayRef[Str]';
-
-coerce 'ArrayRefStr'
-    => from 'Str'
-    => via { [$_] };
-
-has path => (
-    is       => 'rw',
-    isa      => 'ArrayRefStr',
-    coerce   => 1,
-    required => 1,
-);
 has fallback => (
     is      => 'rw',
     isa     => 'Bool',
@@ -60,29 +46,6 @@ has action_method => (
     isa     => 'Str',
     default => 'get_data',
 );
-has file_suffixes => (
-    is      => 'rw',
-    isa     => 'HashRef[Str]',
-    default => sub {
-        return {
-             json => '.dc.json',
-             js   => '.dc.js',
-             yaml => '.dc.yml',
-             xml  => '.dc.xml',
-        };
-    },
-);
-has file_suffix_order => (
-    is      => 'rw',
-    isa     => 'ArrayRefStr',
-    coerce  => 1,
-    default => sub { [qw/js json yaml xml/] },
-);
-has file_default => (
-    is      => 'rw',
-    isa     => 'Str',
-    default => '_default',
-);
 has log => (
     is         => 'rw',
     isa        => 'Object',
@@ -90,24 +53,49 @@ has log => (
     lazy_build => 1,
 );
 has debug => (
-    is      => 'rw',
-    isa     => 'Int',
+    is         => 'rw',
+    isa        => 'Int',
     builder    => '_debug',
-    trigger => \&_debug_set,
+    trigger    => \&_debug_set,
     lazy_build => 1,
 );
+has instance_class => (
+    is       => 'rw',
+    isa      => 'Str',
+    default  => 'Data::Context::Instance',
+);
 has instance_cache => (
-    is      => 'rw',
-    isa     => 'HashRef[Data::Context::Instance]',
-    default => sub {{}},
+    is       => 'rw',
+    isa      => 'HashRef[Data::Context::Instance]',
+    default  => sub {{}},
     init_arg => undef,
 );
+has finder => (
+    is       => 'rw',
+    isa      => ' Data::Context::Finder',
+    required => 1,
+);
+
+around BUILDARGS => sub {
+    my ($orig, $class, @args) = @_;
+    my $args
+        = !@args     ? {}
+        : @args == 1 ? $args[0]
+        :              {@args};
+
+    if ( !$args->{finder} ) {
+        $args->{finder} = Data::Context::Finder::File->new(
+            map { $_ => $args->{$_} }
+            grep { $_ eq 'path' || /^file_/xms }
+            keys %{ $args }
+        );
+    }
+
+    return $class->$orig($args);
+};
 
 sub get {
     my ( $self, $path, $vars ) = @_;
-
-    # we allow paths to be passed with leading slash but we remove before using
-    $path =~ s{^/}{};
 
     my $dci = $self->get_instance($path);
 
@@ -117,69 +105,43 @@ sub get {
 sub get_instance {
     my ( $self, $path ) = @_;
 
-    # TODO add some cache controlls here or in ::Instance::init();
+    # TODO add some cache controls here or in ::Instance::init();
     return $self->instance_cache->{$path} if $self->instance_cache->{$path};
 
-    my @path  = split m{/+}, $path;
+    my @path  = split m{/+}xms, $path;
+    shift @path         if !defined $path[0] || $path[0] eq '';
+    push @path, 'index' if $path =~ m{/$}xms;
+
     my $count = 1;
-    my $file;
-    my $file_type;
+    my $loader;
 
     # find the most appropriate file
     PATH:
     while ( @path ) {
-        my $default;
-        my $default_type;
+        $loader = $self->finder->find(@path);
 
-        for my $search ( @{ $self->path } ) {
-            for my $type ( @{ $self->file_suffix_order } ) {
-                my $config = file(
-                    $search,
-                    @path[0 .. @path-2],
-                    $path[-1] . $self->file_suffixes->{$type}
-                );
-                if ( -e $config ) {
-                    $file = $config;
-                    $file_type = $type;
-                    last PATH;
-                }
-                next if $default;
-
-                $config = file(
-                    $search,
-                    @path[0 .. @path - 2],
-                    $self->file_default . $self->file_suffixes->{$type}
-                );
-                if ( -e $config ) {
-                    $default = $config;
-                    $default_type = $type;
-                }
-            }
-        }
-
-        if ($default) {
-            $file = $default;
-            $file_type = $default_type;
-            last PATH;
-        }
-
+        last if $loader;
         last if !$self->fallback || ( $self->fallback_depth && $count++ >= $self->fallback_depth );
 
         pop @path;
     }
 
-    confess "Could not find a data context config file for '$path'\n" if ! $file;
+    confess "Could not find a data context config file for '$path'\n" if ! $loader;
 
-    return $self->instance_cache->{$path} = Data::Context::Instance->new(
-        path => $path,
-        file => $file,
-        type => $file_type,
-        dc   => $self,
+    my $instance_class = $self->instance_class;
+    return $self->instance_cache->{$path} = $instance_class->new(
+        path   => $path,
+        loader => $loader,
+        dc     => $self,
     );
 }
 
-sub _log { Data::Context::Log->new( level => $_[0]->debug ); }
-sub _debug { 3 }
+sub _log {
+    my $self = shift;
+    require Data::Context::Log;
+    return Data::Context::Log->new( level => $self->debug );
+}
+sub _debug { return 3 }
 sub _debug_set {
     my ($self, $new_debug ) = @_;
     if ( ref $self->log eq 'Data::Context::Log' ) {
@@ -188,23 +150,8 @@ sub _debug_set {
     return $new_debug;
 }
 
-package Data::Context::Log;
+__PACKAGE__->meta->make_immutable;
 
-use Moose;
-use Data::Dumper qw/Dumper/;
-
-has level => ( is => 'rw', isa => 'Int', default => 3 );
-sub debug { my $self = shift; $self->_log( 'DEBUG', @_ ) if $self->level <= 1 }
-sub info  { my $self = shift; $self->_log( 'INFO' , @_ ) if $self->level <= 2 }
-sub warn  { my $self = shift; $self->_log( 'WARN' , @_ ) if $self->level <= 3 }
-sub error { my $self = shift; $self->_log( 'ERROR', @_ ) if $self->level <= 4 }
-sub fatal { my $self = shift; $self->_log( 'FATAL', @_ ) if $self->level <= 5 }
-
-sub _log {
-    my ($self, $level, @message) = @_;
-    chomp $message[-1];
-    CORE::warn( localtime() . " [$level] ", @message, "\n" );
-}
 1;
 
 __END__
@@ -215,7 +162,7 @@ Data::Context - Configuration data with context
 
 =head1 VERSION
 
-This documentation refers to Data::Context version 0.0.5.
+This documentation refers to Data::Context version 0.1.0.
 
 =head1 SYNOPSIS
 

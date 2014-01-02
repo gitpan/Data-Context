@@ -16,9 +16,7 @@ use Data::Dumper qw/Dumper/;
 use English qw/ -no_match_vars /;
 use Data::Context::Util qw/lol_path lol_iterate/;
 
-our $VERSION     = version->new('0.0.5');
-our @EXPORT_OK   = qw//;
-our %EXPORT_TAGS = ();
+our $VERSION = version->new('0.1.0');
 
 sub expand_vars {
     my ( $self, $value, $vars, $path, $dci ) = @_;
@@ -32,7 +30,7 @@ sub expand_vars {
     }
 
     # remove #'s
-    $value =~ s/^#|#$//g;
+    $value =~ s/^[#] | [#]$//gxms;
 
     return Data::Context::Util::lol_path( $vars, $value );
 }
@@ -47,7 +45,7 @@ Data::Context::Actions - Contains all the default actions available to a config
 
 =head1 VERSION
 
-This documentation refers to Data::Context::Actions version 0.0.5.
+This documentation refers to Data::Context::Actions version 0.1.0.
 =head1 SYNOPSIS
 
    use Data::Context::Actions;
