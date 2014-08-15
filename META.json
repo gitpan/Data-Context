@@ -4,7 +4,7 @@
       "Ivan Wills <ivan.wills@gmail.com>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "Module::Build version 0.4203",
+   "generated_by" : "Module::Build version 0.4204",
    "license" : [
       "perl_5"
    ],
@@ -56,31 +56,31 @@
    "provides" : {
       "Data::Context" : {
          "file" : "lib/Data/Context.pm",
-         "version" : "v0.1.0"
+         "version" : "v0.1.1"
       },
       "Data::Context::Actions" : {
          "file" : "lib/Data/Context/Actions.pm",
-         "version" : "v0.1.0"
+         "version" : "v0.1.1"
       },
       "Data::Context::Finder" : {
          "file" : "lib/Data/Context/Finder.pm",
-         "version" : "v0.1.0"
+         "version" : "v0.1.1"
       },
       "Data::Context::Finder::File" : {
          "file" : "lib/Data/Context/Finder/File.pm",
-         "version" : "v0.1.0"
+         "version" : "v0.1.1"
       },
       "Data::Context::Instance" : {
          "file" : "lib/Data/Context/Instance.pm",
-         "version" : "v0.1.0"
+         "version" : "v0.1.1"
       },
       "Data::Context::Loader" : {
          "file" : "lib/Data/Context/Loader.pm",
-         "version" : "v0.1.0"
+         "version" : "v0.1.1"
       },
       "Data::Context::Loader::File" : {
          "file" : "lib/Data/Context/Loader/File.pm",
-         "version" : "v0.1.0"
+         "version" : "v0.1.1"
       },
       "Data::Context::Loader::File::JS" : {
          "file" : "lib/Data/Context/Loader/File/JS.pm",
@@ -103,7 +103,7 @@
       },
       "Data::Context::Util" : {
          "file" : "lib/Data/Context/Util.pm",
-         "version" : "v0.1.0"
+         "version" : "v0.1.1"
       }
    },
    "release_status" : "stable",
@@ -118,5 +118,5 @@
          "url" : "git://github.com/ivanwills/Data-Context.git"
       }
    },
-   "version" : "v0.1.0"
+   "version" : "v0.1.1"
 }

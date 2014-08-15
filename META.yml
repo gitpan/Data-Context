@@ -11,7 +11,7 @@ build_requires:
 configure_requires:
   Module::Build: 0.38
 dynamic_config: 1
-generated_by: 'Module::Build version 0.4203, CPAN::Meta::Converter version 2.131560'
+generated_by: 'Module::Build version 0.4204, CPAN::Meta::Converter version 2.133380'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -20,25 +20,25 @@ name: Data-Context
 provides:
   Data::Context:
     file: lib/Data/Context.pm
-    version: v0.1.0
+    version: v0.1.1
   Data::Context::Actions:
     file: lib/Data/Context/Actions.pm
-    version: v0.1.0
+    version: v0.1.1
   Data::Context::Finder:
     file: lib/Data/Context/Finder.pm
-    version: v0.1.0
+    version: v0.1.1
   Data::Context::Finder::File:
     file: lib/Data/Context/Finder/File.pm
-    version: v0.1.0
+    version: v0.1.1
   Data::Context::Instance:
     file: lib/Data/Context/Instance.pm
-    version: v0.1.0
+    version: v0.1.1
   Data::Context::Loader:
     file: lib/Data/Context/Loader.pm
-    version: v0.1.0
+    version: v0.1.1
   Data::Context::Loader::File:
     file: lib/Data/Context/Loader/File.pm
-    version: v0.1.0
+    version: v0.1.1
   Data::Context::Loader::File::JS:
     file: lib/Data/Context/Loader/File/JS.pm
     version: v0.0.1
@@ -55,7 +55,7 @@ provides:
     file: lib/Data/Context/Log.pm
   Data::Context::Util:
     file: lib/Data/Context/Util.pm
-    version: v0.1.0
+    version: v0.1.1
 recommends:
   JSON: 0
   Pod::Coverage: 0
@@ -80,4 +80,4 @@ resources:
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=Data::Context
   license: http://dev.perl.org/licenses/
   repository: git://github.com/ivanwills/Data-Context.git
-version: v0.1.0
+version: v0.1.1
