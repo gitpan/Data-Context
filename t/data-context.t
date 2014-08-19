@@ -9,8 +9,8 @@ use Test::Warn;
 
 use Data::Context;
 
-eval { require JSON };
-plan skip_all => 'This test requires JSON to be installed to run' if $@;
+eval { require JSON; require XML::Simple; };
+plan skip_all => 'This test requires JSON, XML::Simple to be installed to run' if $@;
 
 my $path = file($0)->parent->subdir('dc');
 
@@ -44,22 +44,24 @@ sub test_getting {
     #diag Dumper $data;
 
     $data = eval { $dc->get( 'data/with/deep/path', { test => { value => [qw/a b/] } } ) };
+    my $error = $@;
     #diag Dumper $data;
     ok $data, "get some data from ( 'data/with/deep/path', { test => { value => [qw/a b/] } } )"
-        or diag $@;
+        or diag $error;
 
     # test getting root index
     $data = eval { $dc->get( '/', { test => { value => [qw/a b/] } } ) };
+    $error = $@;
     #diag Dumper $data;
     ok $data, "get some data from ( '/', { test => { value => [qw/a b/] } } )"
-        or diag $@;
+        or diag $error;
 
     # test getting other deep dir
     $data = eval { $dc->get( '/non-existant/', { test => { value => [qw/a b/] } } ) };
-    my $error = $@;
+    $error = $@;
     #diag Dumper $data;
     ok $data, "get some data from ( '/non-existant/', { test => { value => [qw/a b/] } } )"
-        or diag Dumper $@, $data;
+        or diag Dumper $error, $data;
 }
 
 sub test_getting_no_fallback {
